@@ -1,17 +1,10 @@
-#include <debug.hpp>
+﻿#include "physics.hpp"
 
 int main() {
-    debug::time::reset();
-    constexpr unsigned int count = 10;
-    for (unsigned int i = 0; i < count; ++i)
-        debug::message("Hello, Message!");
-    debug::info("%f\n", debug::time::now() / count);
-    debug::time::reset();
-    for (unsigned int i = 0; i < count; ++i)
-        debug::warning("Hello, Warning!");
-    debug::info("%f\n", debug::time::now() / count);
-    debug::time::reset();
-    for (unsigned int i = 0; i < count; ++i)
-        debug::error("Hello, Error!");
-    debug::info("%f\n", debug::time::now() / count);
+    physics::Vec2 v1 = {2, 3, {Unit::Meters ^ 1, Unit::Seconds ^ -2}};
+    physics::Vec2 v2 = {-4, -7, {Unit::Kilograms ^ 1, Unit::Seconds ^ -1, Unit::Meters ^ 2, Unit::Seconds ^ -1}};
+    auto v3 = v1 * v2;
+    auto v4 = v1.cross(v2);
+    v3.print();
+    v4.print();
 }

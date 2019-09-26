@@ -5,8 +5,8 @@ project "test"
 	objdir("%{wks.location}/build/bin/intermediates/" .. outputdir .. "/%{prj.name}")
     flags { "MultiProcessorCompile" }
     files { "src/**.hpp", "src/**.cpp" }
-    includedirs { "%{inc.debug}" }
-    links { "debug" }
+    includedirs { "%{inc.debug}", "%{inc.phsyics}" }
+    links { "debug", "physics" }
     warnings "Extra"
 	filter "configurations:Debug"
         defines "_CONFIG_DEBUG"
