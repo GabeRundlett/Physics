@@ -1,6 +1,12 @@
 #include "../physics.hpp"
 
 namespace physics {
+    Units Unit::operator*(const Unit &u) { return {*this, u}; }
+    Units Unit::operator/(Unit &u) {
+        u.pow *= -1;
+        return {*this, u};
+    }
+
     Units Units::operator*(const Units &u) const {
         Units result = {units};
         result.units.insert(result.units.end(), u.units.begin(), u.units.end());
@@ -16,5 +22,3 @@ namespace physics {
         return result;
     }
 } // namespace physics
-
-physics::Unit operator^(const Unit &lhs, const double rhs) { return physics::Unit{lhs, rhs}; }
