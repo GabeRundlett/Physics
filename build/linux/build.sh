@@ -1,7 +1,7 @@
-cmake . -B ./build/bin
 if [ "$#" -eq "0" ]
 then
-    cmake --build ./build/bin
+	cmake . -B ./build/bin 
 else
-    cmake --build ./build/bin --config "$1"
+	cmake . -B ./build/bin -DCMAKE_BUILD_TYPE=$1
 fi
+cmake --build ./build/bin
