@@ -1,5 +1,5 @@
 #pragma once
-static constexpr char *const sFragSrc = R"(
+static constexpr const char *const sFragSrc = R"(
 #version 430
 
 in vec2 v_size;

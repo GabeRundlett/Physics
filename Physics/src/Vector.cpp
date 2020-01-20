@@ -2,7 +2,7 @@
 #include <iostream>
 
 namespace Physics { namespace Internal {
-    static constexpr char *print_unit(const ::Unit u) {
+    static constexpr const char *print_unit(const ::Unit u) {
         switch (u) {
         case ::Unit::Meters: return "m";
         case ::Unit::Kilograms: return "kg";
@@ -10,7 +10,7 @@ namespace Physics { namespace Internal {
         default: return " ";
         }
     }
-    static constexpr char *print_unit(const Unit &u) { return print_unit(u.type); }
+    static constexpr const char *print_unit(const Unit &u) { return print_unit(u.type); }
 }} // namespace Physics::Internal
 
 namespace Physics {

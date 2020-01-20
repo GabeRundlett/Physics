@@ -1,5 +1,5 @@
 #pragma once
-static constexpr char *const sVertSrc = R"(
+static constexpr const char *const sVertSrc = R"(
 #version 430
 
 layout(location=0) in vec2 pos;
