@@ -66,7 +66,7 @@ static inline void begin() {
     s_vbuffer_pointer = reinterpret_cast<Vertex *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 
     s_shader = create_shader(GL_VERTEX_SHADER, sVertSrc, GL_FRAGMENT_SHADER, sFragSrc);
-    s_texture = create_texture("text32.png");
+    s_texture = create_texture("Master/img/text32.png");
 }
 
 static inline void flush() {
