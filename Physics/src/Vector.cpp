@@ -1,7 +1,7 @@
-#include "../physics.hpp"
+#include "Physics.hpp"
 #include <iostream>
 
-namespace physics { namespace _internal {
+namespace Physics { namespace Internal {
     static constexpr char *print_unit(const ::Unit u) {
         switch (u) {
         case ::Unit::Meters: return "m";
@@ -11,15 +11,15 @@ namespace physics { namespace _internal {
         }
     }
     static constexpr char *print_unit(const Unit &u) { return print_unit(u.type); }
-}} // namespace physics::_internal
+}} // namespace Physics::Internal
 
-namespace physics {
+namespace Physics {
     void Scalar::print() const {
         std::cout << value << ' ';
         for (unsigned int i = 0; i < units.units.size(); ++i) {
             const Unit &u = units.units[i];
-            std::cout << _internal::print_unit(u) << u.pow << ' ';
+            std::cout << Internal::print_unit(u) << u.pow << ' ';
         }
         std::cout << '\n';
     }
-} // namespace physics
+} // namespace Physics

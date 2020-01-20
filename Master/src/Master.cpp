@@ -1,10 +1,11 @@
-﻿#include <cmath>
-#include <debug.hpp>
+﻿#include <Debug/Debug.hpp>
+
+#include <cmath>
 #include <functional>
 #include <string>
 #include <vector>
 
-#include "renderer.hpp"
+#include "Renderer.hpp"
 #include <GLFW/glfw3.h>
 
 struct Line {
@@ -58,7 +59,7 @@ static color menu_color = {255, 255, 255, 255}, menu_border_color = {200, 200, 2
     line_color = {180, 180, 180, 255}, handle_color = {150, 150, 150, 255};
 #endif
 
-static constexpr inline vec2 get_button_pos(const float length, const float height) {
+static inline vec2 get_button_pos(const float length, const float height) {
     return {menu_width / 2 - length * 4 - button_margin.x, window_height - height - button_margin.y};
 }
 static constexpr inline vec2 get_button_size(const float length) {
@@ -425,7 +426,7 @@ int main() {
     drag_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
     select_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     if (!window) {
-        debug::error("Failed to create window");
+        Debug::Log::error("Failed to create window");
         return -1;
     }
     glfwMakeContextCurrent(window);

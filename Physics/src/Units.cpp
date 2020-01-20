@@ -1,6 +1,6 @@
-#include "../physics.hpp"
+#include "Physics.hpp"
 
-namespace physics {
+namespace Physics {
     Units Unit::operator*(const Unit &u) { return {*this, u}; }
     Units Unit::operator/(Unit &u) {
         u.pow *= -1;
@@ -21,4 +21,4 @@ namespace physics {
         }
         return result;
     }
-} // namespace physics
+} // namespace Physics

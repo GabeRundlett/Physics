@@ -1,5 +1,7 @@
-#include "opengl.hpp"
-#include "shader_sources.hpp"
+#include "OpenGL.hpp"
+
+#include "Shaders/Frag.hpp"
+#include "Shaders/Vert.hpp"
 
 struct vec2 {
     float x, y;
@@ -63,7 +65,7 @@ static inline void begin() {
 
     s_vbuffer_pointer = reinterpret_cast<Vertex *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 
-    s_shader = create_shader(GL_VERTEX_SHADER, s_vert_src, GL_FRAGMENT_SHADER, s_frag_src);
+    s_shader = create_shader(GL_VERTEX_SHADER, sVertSrc, GL_FRAGMENT_SHADER, sFragSrc);
     s_texture = create_texture("text32.png");
 }
 

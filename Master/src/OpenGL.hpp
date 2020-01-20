@@ -1,6 +1,6 @@
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "StbImage.hpp"
 #include <glad/glad.h>
 
 static inline void compile_sources(int id, int shader_type, const char *const src) {
@@ -16,7 +16,7 @@ static inline void compile_sources(int id, int shader_type, const char *const sr
         std::vector<char> infoLog(temp);
         glGetShaderInfoLog(compiled_object_id, temp, &temp, &infoLog[0]);
         glDeleteShader(compiled_object_id);
-        debug::info("%s\n", infoLog.data());
+        Debug::Log::info("%s\n", infoLog.data());
     }
 
     glAttachShader(id, compiled_object_id);

@@ -10,7 +10,6 @@
 *.so
 *.o
 *.a
-
 # visual studio files
 *.vcxproj
 *.filters
@@ -23,7 +22,6 @@
 *.db
 *.db-shm
 *.db-wal
-
 # cmake files 
 *.cmake
 *.stamp
@@ -32,9 +30,10 @@
 *.list
 *.rule
 *.dir
-
 # generated directories
-build/bin
+build
 .vscode
 .vs
 out
+# generated files
+*.json

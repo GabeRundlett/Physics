@@ -98,7 +98,3 @@ int main() {
         constexpr auto d = a - b;
     }
 }
-
-// freddie 80cm
-// antoinette 420cm
-// boat 250cm

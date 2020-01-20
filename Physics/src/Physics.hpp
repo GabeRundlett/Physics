@@ -4,7 +4,7 @@
 
 enum class Unit : unsigned char { Meters, Kilograms, Seconds };
 
-namespace physics {
+namespace Physics {
     struct Units;
 
     struct Unit {
@@ -44,14 +44,14 @@ namespace physics {
         Units units;
         Scalar operator*(const Vec2 &v) const { return {x * v.x + y * v.y, units * v.units}; }
         Scalar cross(const Vec2 &v) const { return {x * v.y + y * v.x, units * v.units}; }
-        Scalar len() const { return {sqrt(x * x + y * y), units}; }
+        Scalar len() const { return {sqrtf32(x * x + y * y), units}; }
     };
-} // namespace physics
+} // namespace Physics
 
-inline constexpr physics::Unit operator^(const Unit &lhs, const double rhs) { return {lhs, rhs}; }
-inline constexpr physics::Unit operator""_m(long double d) { return {Unit::Meters, static_cast<double>(d)}; }
-inline constexpr physics::Unit operator""_m(unsigned long long d) { return {Unit::Meters, static_cast<double>(d)}; }
-inline constexpr physics::Unit operator""_kg(long double d) { return {Unit::Kilograms, static_cast<double>(d)}; }
-inline constexpr physics::Unit operator""_kg(unsigned long long d) { return {Unit::Kilograms, static_cast<double>(d)}; }
-inline constexpr physics::Unit operator""_s(long double d) { return {Unit::Seconds, static_cast<double>(d)}; }
-inline constexpr physics::Unit operator""_s(unsigned long long d) { return {Unit::Seconds, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator^(const Unit &lhs, const double rhs) { return {lhs, rhs}; }
+inline constexpr Physics::Unit operator""_m(long double d) { return {Unit::Meters, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator""_m(unsigned long long d) { return {Unit::Meters, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator""_kg(long double d) { return {Unit::Kilograms, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator""_kg(unsigned long long d) { return {Unit::Kilograms, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator""_s(long double d) { return {Unit::Seconds, static_cast<double>(d)}; }
+inline constexpr Physics::Unit operator""_s(unsigned long long d) { return {Unit::Seconds, static_cast<double>(d)}; }
