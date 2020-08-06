@@ -2,7 +2,9 @@
 #include <cmath>
 #include <vector>
 
-enum class Unit : unsigned char { Meters, Kilograms, Seconds };
+enum class Unit : unsigned char { Meters,
+                                  Kilograms,
+                                  Seconds };
 
 namespace Physics {
     struct Units;
@@ -21,7 +23,8 @@ namespace Physics {
     struct Units {
         std::vector<Unit> units;
         Units operator*(const Units &u) const;
-        template <typename... T> Units(T... args) : units{args...} {}
+        template <typename... T>
+        Units(T... args) : units{args...} {}
         Units operator*(const Unit &u) {
             units.push_back(u);
             return *this;

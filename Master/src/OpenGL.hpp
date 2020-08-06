@@ -1,7 +1,7 @@
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION
 #include "StbImage.hpp"
-#include <glad/glad.h>
+// #include <glad/glad.h>
 
 static inline void compile_sources(int id, int shader_type, const char *const src) {
     unsigned int compiled_object_id = glCreateShader(shader_type);
@@ -22,11 +22,13 @@ static inline void compile_sources(int id, int shader_type, const char *const sr
     glAttachShader(id, compiled_object_id);
     glDeleteShader(compiled_object_id);
 }
-template <typename... T> static inline void compile_sources(int id, int shader_type, const char *const src, T... args) {
+template <typename... T>
+static inline void compile_sources(int id, int shader_type, const char *const src, T... args) {
     compile_sources(id, shader_type, src);
     compile_sources(id, args...);
 }
-template <typename... T> static inline int create_shader(int shader_type, const char *const src, T... args) {
+template <typename... T>
+static inline int create_shader(int shader_type, const char *const src, T... args) {
     int id = glCreateProgram();
     compile_sources(id, shader_type, src, args...);
     glLinkProgram(id);

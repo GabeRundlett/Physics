@@ -23,7 +23,6 @@
 *.db-shm
 *.db-wal
 # cmake files 
-*.cmake
 *.stamp
 *.depend
 *.check_cache
@@ -35,5 +34,10 @@ build
 .vscode
 .vs
 out
+.idea
+Debug
+Release
+Testing
 # generated files
 *.json
+*.ini

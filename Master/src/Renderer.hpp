@@ -162,9 +162,11 @@ static inline void draw_rect_ab(const vec2 &a, const vec2 &b, float mid, const c
 static inline void draw_line(const vec2 &a, const vec2 &b, const float radius, const color &col = {0, 0, 0, 255},
                              const vec2 &tex_pos = {0.f, 0.f}, const vec2 &tex_size = {1.f, 1.f}) {
     float x_border = radius;
-    if (b.x < a.x) x_border *= -1;
+    if (b.x < a.x)
+        x_border *= -1;
     float y_border = radius;
-    if (b.y < a.y) y_border *= -1;
+    if (b.y < a.y)
+        y_border *= -1;
     s_vbuffer_pointer->pos.x = a.x - x_border;
     s_vbuffer_pointer->pos.y = a.y - y_border;
     s_vbuffer_pointer->size = a - b - vec2{x_border * 2, y_border * 2};

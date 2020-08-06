@@ -1,70 +1,85 @@
 #include <math.h>
 #include <stdio.h>
 
-enum class UnitTypeID { none, length, angle };
-template <typename T> struct Unit {
+enum class UnitTypeID { none,
+                        length,
+                        angle };
+template <typename T>
+struct Unit {
     static constexpr UnitTypeID get_type() { return UnitTypeID::none; }
-    template <typename U> constexpr Unit<T> operator+(const Unit<U>) { return Unit<T>(); }
+    template <typename U>
+    constexpr Unit<T> operator+(const Unit<U>) { return Unit<T>(); }
 };
 
-#define _IMPL_LITERAL_SUFFIX(type, singular_name, abbreviation)                                                                \
-    constexpr Unit<type::singular_name> operator""_##abbreviation(const long double lhs) {                                     \
-        return {static_cast<double>(lhs), 1.0};                                                                                \
-    }                                                                                                                          \
-    constexpr Unit<type::singular_name> operator""_##abbreviation(const unsigned long long lhs) {                              \
-        return {static_cast<double>(lhs), 1.0};                                                                                \
+#define _IMPL_LITERAL_SUFFIX(type, singular_name, abbreviation)                                   \
+    constexpr Unit<type::singular_name> operator""_##abbreviation(const long double lhs) {        \
+        return {static_cast<double>(lhs), 1.0};                                                   \
+    }                                                                                             \
+    constexpr Unit<type::singular_name> operator""_##abbreviation(const unsigned long long lhs) { \
+        return {static_cast<double>(lhs), 1.0};                                                   \
     }
 
-#define _IMPL_UNIT_TYPE(type, singular_name, plural_name)                                                                      \
-    namespace type {                                                                                                           \
-        struct singular_name {};                                                                                               \
-    }                                                                                                                          \
-    template <> struct Unit<type::singular_name> {                                                                             \
-        double value, power = 1.0;                                                                                             \
-        static constexpr UnitTypeID get_type() { return UnitTypeID::type; }                                                    \
-        template <typename U> constexpr Unit<type::singular_name> operator+(const Unit<U> &u) const {                          \
-            return Unit<type::singular_name>();                                                                                \
-        }                                                                                                                      \
-        template <typename U> constexpr Unit<type::singular_name> operator-(const Unit<U> &u) const {                          \
-            return Unit<type::singular_name>();                                                                                \
-        }                                                                                                                      \
-        constexpr Unit<type::singular_name> operator^(const long double x) {                                                   \
-            power *= x;                                                                                                        \
-            return *this;                                                                                                      \
-        }                                                                                                                      \
-        void print() { printf("%f " #plural_name "\n", value); }                                                               \
+#define _IMPL_UNIT_TYPE(type, singular_name, plural_name)                       \
+    namespace type {                                                            \
+        struct singular_name {};                                                \
+    }                                                                           \
+    template <>                                                                 \
+    struct Unit<type::singular_name> {                                          \
+        double value, power = 1.0;                                              \
+        static constexpr UnitTypeID get_type() { return UnitTypeID::type; }     \
+        template <typename U>                                                   \
+        constexpr Unit<type::singular_name> operator+(const Unit<U> &u) const { \
+            return Unit<type::singular_name>();                                 \
+        }                                                                       \
+        template <typename U>                                                   \
+        constexpr Unit<type::singular_name> operator-(const Unit<U> &u) const { \
+            return Unit<type::singular_name>();                                 \
+        }                                                                       \
+        constexpr Unit<type::singular_name> operator^(const long double x) {    \
+            power *= x;                                                         \
+            return *this;                                                       \
+        }                                                                       \
+        void print() { printf("%f " #plural_name "\n", value); }                \
     };
 
-#define _IMPL_UNIT_OPERATOR_PLUS(type, name1, name2, factor)                                                                   \
-    template <> constexpr Unit<type::name1> Unit<type::name1>::operator+(const Unit<type::name2> &u) const {                   \
-        if (power == u.power) return {value + u.value * factor /*pow(factor, power)*/, power};                                 \
-        printf("you may not add scalars at different powers\n");                                                               \
-        return {0, 1};                                                                                                         \
-    }                                                                                                                          \
-    template <> constexpr Unit<type::name2> Unit<type::name2>::operator+(const Unit<type::name1> &u) const {                   \
-        if (power == u.power) return {value + u.value / factor /*pow(factor, power)*/, power};                                 \
-        printf("you may not add scalars at different powers\n");                                                               \
-        return {0, 1};                                                                                                         \
+#define _IMPL_UNIT_OPERATOR_PLUS(type, name1, name2, factor)                                     \
+    template <>                                                                                  \
+    constexpr Unit<type::name1> Unit<type::name1>::operator+(const Unit<type::name2> &u) const { \
+        if (power == u.power)                                                                    \
+            return {value + u.value * factor /*pow(factor, power)*/, power};                     \
+        printf("you may not add scalars at different powers\n");                                 \
+        return {0, 1};                                                                           \
+    }                                                                                            \
+    template <>                                                                                  \
+    constexpr Unit<type::name2> Unit<type::name2>::operator+(const Unit<type::name1> &u) const { \
+        if (power == u.power)                                                                    \
+            return {value + u.value / factor /*pow(factor, power)*/, power};                     \
+        printf("you may not add scalars at different powers\n");                                 \
+        return {0, 1};                                                                           \
     }
 
-#define _IMPL_UNIT_OPERATOR_MINUS(type, name1, name2, factor)                                                                  \
-    template <> constexpr Unit<type::name1> Unit<type::name1>::operator-(const Unit<type::name2> &u) const {                   \
-        if (power == u.power) return {value - u.value * factor /*pow(factor, power)*/, power};                                 \
-        printf("you may not subtract scalars at different powers\n");                                                          \
-        return {0, 1};                                                                                                         \
-    }                                                                                                                          \
-    template <> constexpr Unit<type::name2> Unit<type::name2>::operator-(const Unit<type::name1> &u) const {                   \
-        if (power == u.power) return {value - u.value / factor /*pow(factor, power)*/, power};                                 \
-        printf("you may not subtract scalars at different powers\n");                                                          \
-        return {0, 1};                                                                                                         \
+#define _IMPL_UNIT_OPERATOR_MINUS(type, name1, name2, factor)                                    \
+    template <>                                                                                  \
+    constexpr Unit<type::name1> Unit<type::name1>::operator-(const Unit<type::name2> &u) const { \
+        if (power == u.power)                                                                    \
+            return {value - u.value * factor /*pow(factor, power)*/, power};                     \
+        printf("you may not subtract scalars at different powers\n");                            \
+        return {0, 1};                                                                           \
+    }                                                                                            \
+    template <>                                                                                  \
+    constexpr Unit<type::name2> Unit<type::name2>::operator-(const Unit<type::name1> &u) const { \
+        if (power == u.power)                                                                    \
+            return {value - u.value / factor /*pow(factor, power)*/, power};                     \
+        printf("you may not subtract scalars at different powers\n");                            \
+        return {0, 1};                                                                           \
     }
 
-#define _IMPL_UNIT(type, singular_name, plural_name, abbreviation)                                                             \
-    _IMPL_UNIT_TYPE(type, singular_name, plural_name)                                                                          \
+#define _IMPL_UNIT(type, singular_name, plural_name, abbreviation) \
+    _IMPL_UNIT_TYPE(type, singular_name, plural_name)              \
     _IMPL_LITERAL_SUFFIX(type, singular_name, abbreviation)
 
-#define _IMPL_UNIT_OPERATORS(type, name1, name2, factor)                                                                       \
-    _IMPL_UNIT_OPERATOR_PLUS(type, name1, name2, factor)                                                                       \
+#define _IMPL_UNIT_OPERATORS(type, name1, name2, factor) \
+    _IMPL_UNIT_OPERATOR_PLUS(type, name1, name2, factor) \
     _IMPL_UNIT_OPERATOR_MINUS(type, name1, name2, factor)
 
 _IMPL_UNIT(length, meter, meters, m)

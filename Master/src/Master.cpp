@@ -1,4 +1,4 @@
-﻿#include <Debug/Debug.hpp>
+﻿// #include <Debug/Debug.hpp>
 
 #include <cmath>
 #include <functional>
@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Renderer.hpp"
-#include <GLFW/glfw3.h>
+// #include <GLFW/glfw3.h>
 
 struct Line {
     vec2 a, b;
@@ -72,7 +72,8 @@ static inline void set_cam_pos(const vec2 &v) {
 }
 
 static inline vec2 &get_grid_mouse() {
-    if (snap_to_grid) return grid_mouse;
+    if (snap_to_grid)
+        return grid_mouse;
     return mouse;
 }
 
@@ -181,7 +182,9 @@ static inline void set_line_point2() {
     lines.back().b = get_grid_mouse() - cam_pos;
 }
 static inline void drag_line_point2() {
-    if (lines.size()) { lines.back().b = get_grid_mouse() - cam_pos; }
+    if (lines.size()) {
+        lines.back().b = get_grid_mouse() - cam_pos;
+    }
 }
 static inline void grab_line_handle() {
     if (hovered_line_handle) {
@@ -191,10 +194,12 @@ static inline void grab_line_handle() {
 }
 static inline void place_line_handle() {
     grabbed_line_handle = false;
-    if (hovered_line_handle) *hovered_line_handle = get_grid_mouse() - cam_pos;
+    if (hovered_line_handle)
+        *hovered_line_handle = get_grid_mouse() - cam_pos;
 }
 static inline void drag_line_handle() {
-    if (grabbed_line_handle && hovered_line_handle) *hovered_line_handle = get_grid_mouse() - cam_pos;
+    if (grabbed_line_handle && hovered_line_handle)
+        *hovered_line_handle = get_grid_mouse() - cam_pos;
 }
 static inline void drag_line() {
     if (grabbed_line && hovered_line) {
@@ -259,7 +264,9 @@ static inline void drag_rect_handle() {
 }
 
 static inline void drag_camera() {
-    if (cam_move) { set_cam_pos(mouse - temp_cam_pos); }
+    if (cam_move) {
+        set_cam_pos(mouse - temp_cam_pos);
+    }
 }
 static inline void grab_camera() {
     glfwSetCursor(window, drag_cursor);
@@ -389,7 +396,8 @@ static inline void draw_viewport() {
         const vec2 &p = *hovered_line_handle;
         draw_circle({p.x + x_cam_off, p.y + y_cam_off}, 8, selection_color2);
     }
-    if (tool_id == 2) draw_circle(get_grid_mouse(), 5, selection_color1);
+    if (tool_id == 2)
+        draw_circle(get_grid_mouse(), 5, selection_color1);
 }
 
 static inline void draw_menu_button(const std::string &string, const float height, const color &bcol, const color &tcol) {
