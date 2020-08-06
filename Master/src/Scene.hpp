@@ -88,10 +88,7 @@ static inline void draw_menu() {
 
     draw_text(menu_width / 2 - 2 * 8, static_cast<float>(window_height) - 24, "Menu", text_color1);
 
-    draw_menu_button("Line Tool", 80, button_color1, text_color1);
-    draw_menu_button("Other Tool", 120, button_color1, text_color1);
-    draw_menu_button("Other Tool", 160, button_color1, text_color1);
-    draw_menu_button("Other Tool", 200, button_color1, text_color1);
+    draw_menu_button("Line Tool [d]", 80, button_color1, text_color1);
 
     std::string text = "Camera: " + std::to_string(cam_pos.x) + ", " + std::to_string(cam_pos.y);
     draw_line({menu_width + 24, 17}, {menu_width + 16 + static_cast<float>(text.length()) * 8, 17}, 10, drop_shadow_color1);

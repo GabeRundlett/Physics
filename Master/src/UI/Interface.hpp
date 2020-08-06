@@ -12,7 +12,7 @@ static int window_width = 1600, window_height = 900;
 static double current_time = 0, prev_time = 0, elapsed_time = 1, avg_time = 1;
 
 static constexpr float menu_width = 200;
-static constexpr vec2 button_margin = {40, 6};
+static constexpr vec2 button_margin = {20, 6};
 
 static vec2 temp_cam_pos = {0, 0};
 static vec2 viewport_center = {
