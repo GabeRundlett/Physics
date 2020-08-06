@@ -1,19 +1,18 @@
 #include "OpenGL.hpp"
 
-#include "Shaders/Frag.hpp"
 #include "Shaders/Vert.hpp"
+#include "Shaders/Frag.hpp"
 
 struct vec2 {
     float x, y;
-    vec2 operator+(const vec2 &rhs) const { return {x + rhs.x, y + rhs.y}; }
-    vec2 operator-(const vec2 &rhs) const { return {x - rhs.x, y - rhs.y}; }
-    vec2 operator*(const float rhs) const { return {x * rhs, y * rhs}; }
-    vec2 operator/(const float rhs) const { return {x / rhs, y / rhs}; }
+    inline constexpr vec2 operator+(const vec2 &rhs) const { return {x + rhs.x, y + rhs.y}; }
+    inline constexpr vec2 operator-(const vec2 &rhs) const { return {x - rhs.x, y - rhs.y}; }
+    inline constexpr vec2 operator*(const float rhs) const { return {x * rhs, y * rhs}; }
+    inline constexpr vec2 operator/(const float rhs) const { return {x / rhs, y / rhs}; }
 };
 struct color {
     unsigned char r, g, b, a;
 };
-
 struct Vertex {
     vec2 pos, size, tex;
     color col;
@@ -28,14 +27,32 @@ static unsigned int s_index_count = 0;
 static Vertex *s_vbuffer_pointer;
 static int s_shader = 0, s_texture = 0;
 
+struct rect_config {
+    vec2 pos, size;
+    vec2 tex_pos = {0, 0}, tex_size = {1, 1};
+    color col = {0, 0, 0, 255};
+    float mid = 0;
+};
+
+struct rect_ab_config {
+    vec2 p1, p2, border = {0, 0};
+    vec2 tex_p1 = {0, 0}, tex_p2 = {1, 1};
+    color col = {0, 0, 0, 255};
+    float mid = 0, data1 = 0;
+};
+
+// .0121 - raw param
+// .0126 - config struct param
+// .0154 - indirection
+// .0125 - indirection p2
+// .
+
 static inline void begin() {
     glGenVertexArrays(1, &s_vao_id);
     glBindVertexArray(s_vao_id);
-
     glGenBuffers(1, &s_vbo_id);
     glBindBuffer(GL_ARRAY_BUFFER, s_vbo_id);
     glBufferData(GL_ARRAY_BUFFER, s_vbuffer_size, nullptr, GL_DYNAMIC_DRAW);
-
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -48,9 +65,8 @@ static inline void begin() {
     glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (const void *)24);
     glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)28);
     glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)32);
-
-    for (unsigned int i = 0; i < s_sprite_count; ++i) {
-        const unsigned int index = i * 6, offset = i * 4;
+    for (unsigned short i = 0; i < s_sprite_count; ++i) {
+        const unsigned short index = i * 6, offset = i * 4;
         s_indices[index] = offset;
         s_indices[index + 1] = 1 + offset;
         s_indices[index + 2] = 2 + offset;
@@ -58,17 +74,13 @@ static inline void begin() {
         s_indices[index + 4] = 3 + offset;
         s_indices[index + 5] = 2 + offset;
     }
-
     glGenBuffers(1, &s_ibo_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ibo_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(s_indices), s_indices, GL_STATIC_DRAW);
-
     s_vbuffer_pointer = reinterpret_cast<Vertex *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-
     s_shader = create_shader(GL_VERTEX_SHADER, sVertSrc, GL_FRAGMENT_SHADER, sFragSrc);
     s_texture = create_texture("Master/img/text32.png");
 }
-
 static inline void flush() {
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindVertexArray(s_vao_id);
@@ -77,143 +89,96 @@ static inline void flush() {
     s_index_count = 0;
 }
 
-static inline void draw_rect(const vec2 &pos, const vec2 &size, float mid, const color &col = {0, 0, 0, 255},
-                             const vec2 &tex_pos = {0.f, 0.f}, const vec2 &tex_size = {1.f, 1.f}) {
-    s_vbuffer_pointer->pos.x = pos.x;
-    s_vbuffer_pointer->pos.y = pos.y;
+static inline void draw_rect_ab(const rect_ab_config &conf) {
+    if (s_index_count + 6 >= s_ibuffer_size)
+        flush();
+    const auto size = conf.p2 - conf.p1 + (conf.border * 2);
+    s_vbuffer_pointer->pos.x = conf.p1.x - conf.border.x;
+    s_vbuffer_pointer->pos.y = conf.p1.y - conf.border.y;
     s_vbuffer_pointer->size = size;
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
+    s_vbuffer_pointer->tex.x = conf.tex_p1.x;
+    s_vbuffer_pointer->tex.y = conf.tex_p1.y;
+    s_vbuffer_pointer->col = conf.col;
+    s_vbuffer_pointer->mid = conf.mid;
+    s_vbuffer_pointer->data1 = conf.data1;
     ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = pos.x;
-    s_vbuffer_pointer->pos.y = pos.y + size.y;
+    s_vbuffer_pointer->pos.x = conf.p1.x - conf.border.x;
+    s_vbuffer_pointer->pos.y = conf.p2.y + conf.border.y;
     s_vbuffer_pointer->size = size;
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
+    s_vbuffer_pointer->tex.x = conf.tex_p1.x;
+    s_vbuffer_pointer->tex.y = conf.tex_p2.y;
+    s_vbuffer_pointer->col = conf.col;
+    s_vbuffer_pointer->mid = conf.mid;
+    s_vbuffer_pointer->data1 = conf.data1;
     ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = pos.x + size.x;
-    s_vbuffer_pointer->pos.y = pos.y;
+    s_vbuffer_pointer->pos.x = conf.p2.x + conf.border.x;
+    s_vbuffer_pointer->pos.y = conf.p1.y - conf.border.y;
     s_vbuffer_pointer->size = size;
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
+    s_vbuffer_pointer->tex.x = conf.tex_p2.x;
+    s_vbuffer_pointer->tex.y = conf.tex_p1.y;
+    s_vbuffer_pointer->col = conf.col;
+    s_vbuffer_pointer->mid = conf.mid;
+    s_vbuffer_pointer->data1 = conf.data1;
     ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = pos.x + size.x;
-    s_vbuffer_pointer->pos.y = pos.y + size.y;
+    s_vbuffer_pointer->pos.x = conf.p2.x + conf.border.x;
+    s_vbuffer_pointer->pos.y = conf.p2.y + conf.border.y;
     s_vbuffer_pointer->size = size;
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
+    s_vbuffer_pointer->tex.x = conf.tex_p2.x;
+    s_vbuffer_pointer->tex.y = conf.tex_p2.y;
+    s_vbuffer_pointer->col = conf.col;
+    s_vbuffer_pointer->mid = conf.mid;
+    s_vbuffer_pointer->data1 = conf.data1;
     ++s_vbuffer_pointer;
     s_index_count += 6;
 }
-
-static inline void draw_rect_ab(const vec2 &a, const vec2 &b, float mid, const color &col = {0, 0, 0, 255},
-                                const vec2 &tex_pos = {0.f, 0.f}, const vec2 &tex_size = {1.f, 1.f}) {
-    s_vbuffer_pointer->pos.x = a.x;
-    s_vbuffer_pointer->pos.y = a.y;
-    s_vbuffer_pointer->size = a - b;
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = a.x;
-    s_vbuffer_pointer->pos.y = b.y;
-    s_vbuffer_pointer->size = a - b;
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = b.x;
-    s_vbuffer_pointer->pos.y = a.y;
-    s_vbuffer_pointer->size = a - b;
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = b.x;
-    s_vbuffer_pointer->pos.y = b.y;
-    s_vbuffer_pointer->size = a - b;
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = mid;
-    s_vbuffer_pointer->data1 = 0.f;
-    ++s_vbuffer_pointer;
-    s_index_count += 6;
+static void draw_rect(const rect_config &conf) {
+    draw_rect_ab({
+        .p1 = conf.pos,
+        .p2 = conf.pos + conf.size,
+        .tex_p1 = conf.tex_pos,
+        .tex_p2 = conf.tex_pos + conf.tex_size,
+        .col = conf.col,
+        .mid = conf.mid,
+    });
 }
-
-static inline void draw_line(const vec2 &a, const vec2 &b, const float radius, const color &col = {0, 0, 0, 255},
-                             const vec2 &tex_pos = {0.f, 0.f}, const vec2 &tex_size = {1.f, 1.f}) {
+static void draw_line(const vec2 &a, const vec2 &b, const float radius, const color &col = {0, 0, 0, 255},
+                      const vec2 &tex_a = {0.f, 0.f}, const vec2 &tex_b = {1.f, 1.f}) {
     float x_border = radius;
     if (b.x < a.x)
         x_border *= -1;
     float y_border = radius;
     if (b.y < a.y)
         y_border *= -1;
-    s_vbuffer_pointer->pos.x = a.x - x_border;
-    s_vbuffer_pointer->pos.y = a.y - y_border;
-    s_vbuffer_pointer->size = a - b - vec2{x_border * 2, y_border * 2};
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = 3.f;
-    s_vbuffer_pointer->data1 = radius;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = a.x - x_border;
-    s_vbuffer_pointer->pos.y = b.y + y_border;
-    s_vbuffer_pointer->size = a - b - vec2{x_border * 2, y_border * 2};
-    s_vbuffer_pointer->tex.x = tex_pos.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = 3.f;
-    s_vbuffer_pointer->data1 = radius;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = b.x + x_border;
-    s_vbuffer_pointer->pos.y = a.y - y_border;
-    s_vbuffer_pointer->size = a - b - vec2{x_border * 2, y_border * 2};
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = 3.f;
-    s_vbuffer_pointer->data1 = radius;
-    ++s_vbuffer_pointer;
-    s_vbuffer_pointer->pos.x = b.x + x_border;
-    s_vbuffer_pointer->pos.y = b.y + y_border;
-    s_vbuffer_pointer->size = a - b - vec2{x_border * 2, y_border * 2};
-    s_vbuffer_pointer->tex.x = tex_pos.x + tex_size.x;
-    s_vbuffer_pointer->tex.y = tex_pos.y + tex_size.y;
-    s_vbuffer_pointer->col = col;
-    s_vbuffer_pointer->mid = 3.f;
-    s_vbuffer_pointer->data1 = radius;
-    ++s_vbuffer_pointer;
-    s_index_count += 6;
+    draw_rect_ab({
+        .p1 = a,
+        .p2 = b,
+        .border = {x_border, y_border},
+        .tex_p1 = tex_a,
+        .tex_p2 = tex_b,
+        .col = col,
+        .mid = 3.0f,
+        .data1 = radius,
+    });
 }
-
 static inline void draw_circle(const vec2 &p, const float radius, const color &col = {0, 0, 0, 255}) {
-    draw_rect({p.x - radius, p.y - radius}, {radius * 2, radius * 2}, 2, col);
+    draw_rect_ab({
+        .p1 = {p.x - radius, p.y - radius},
+        .p2 = {p.x + radius, p.y + radius},
+        .col = col,
+        .mid = 2,
+    });
 }
-
 static inline void draw_text(float x, float y, const std::string &text, const color &col) {
     for (unsigned int i = 0; i < text.length(); ++i) {
         const int index = static_cast<int>(text[i]) - 32;
         const float u = static_cast<float>(index) / 223;
-        draw_rect({x + 8.f * i, y}, {8.f, 16.f}, 4.0, col, {u, 0.f}, {1.f / 223, 1.f});
+        draw_rect({
+            .pos = {x + 8.f * i, y},
+            .size = {8.f, 16.f},
+            .tex_pos = {u, 0.f},
+            .tex_size = {1.f / 223, 1.f},
+            .col = col,
+            .mid = 4.0,
+        });
     }
 }

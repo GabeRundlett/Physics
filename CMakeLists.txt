@@ -7,12 +7,10 @@ conan_cmake_run(
     BASIC_SETUP
     CMAKE_TARGETS
     REQUIRES
-    # glew/2.1.0
+    glew/2.1.0
     glfw/3.3.2
-    # BUILD
+    BUILD
 )
 
-set(PhysicsIncludePath "${PROJECT_SOURCE_DIR}/Physics/src")
-
-add_subdirectory(Physics)
+# add_subdirectory(Physics)
 add_subdirectory(Master)

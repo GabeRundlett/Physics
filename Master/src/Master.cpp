@@ -4,9 +4,10 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <array>
 
 #include "Renderer.hpp"
-// #include <GLFW/glfw3.h>
+#include <GLFW/glfw3.h>
 
 struct Line {
     vec2 a, b;
@@ -18,13 +19,17 @@ struct Rect {
 static vec2 mouse = {0, 0};
 static vec2 grid_mouse = {0, 0};
 static vec2 cam_pos = {0, 0};
-static float window_width = 1600, window_height = 900;
+static int window_width = 1600, window_height = 900;
+static double current_time = 0, prev_time = 0, elapsed_time = 1, avg_time = 1;
 
 static constexpr float menu_width = 200;
 constexpr vec2 button_margin = {40, 6};
 
 static vec2 temp_cam_pos = {0, 0};
-static vec2 viewport_center = {(window_width - menu_width) / 2 + menu_width, window_height / 2};
+static vec2 viewport_center = {
+    (static_cast<float>(window_width) - menu_width) / 2 + menu_width,
+    static_cast<float>(window_height) / 2,
+};
 static bool cam_move = false;
 
 static std::vector<Line> lines;
@@ -43,11 +48,11 @@ static Rect *hovered_rect = nullptr;
 GLFWwindow *window;
 GLFWcursor *drag_cursor, *select_cursor;
 
-// #define LIGHT_THEME
+#define DARK_THEME true
 
-#ifndef LIGHT_THEME
+#if DARK_THEME
 static color menu_color = {25, 25, 28, 255}, menu_border_color = {20, 20, 22, 255},  //
-    text_color1 = {168, 168, 172, 255}, drop_shadow_color1 = {0, 0, 0, 75},          //
+    text_color1 = {168, 168, 172, 255}, drop_shadow_color1 = {0, 0, 0, 175},         //
     button_color1 = {22, 22, 24, 255}, button_color2 = {30, 30, 33, 255},            //
     selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25}, //
     line_color = {61, 61, 66, 255}, handle_color = {82, 82, 91, 255};
@@ -55,7 +60,7 @@ static color menu_color = {25, 25, 28, 255}, menu_border_color = {20, 20, 22, 25
 static color menu_color = {255, 255, 255, 255}, menu_border_color = {200, 200, 200, 255}, //
     text_color1 = {50, 50, 50, 255}, drop_shadow_color1 = {255, 255, 255, 75},            //
     button_color1 = {210, 210, 210, 255}, button_color2 = {30, 30, 33, 255},              //
-    selection_color1 = {100, 100, 200, 255},                                              //
+    selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25},      //
     line_color = {180, 180, 180, 255}, handle_color = {150, 150, 150, 255};
 #endif
 
@@ -65,18 +70,15 @@ static inline vec2 get_button_pos(const float length, const float height) {
 static constexpr inline vec2 get_button_size(const float length) {
     return {length * 8 + button_margin.x * 2, 16 + button_margin.y * 2};
 }
-
 static inline void set_cam_pos(const vec2 &v) {
     cam_pos = v;
     glUniform2fv(glGetUniformLocation(s_shader, "cam_pos"), 1, (const float *)&cam_pos);
 }
-
 static inline vec2 &get_grid_mouse() {
     if (snap_to_grid)
         return grid_mouse;
     return mouse;
 }
-
 static inline void hover_lines() {
     if (lines.size())
         if (!grabbed_line && !grabbed_line_handle) {
@@ -223,7 +225,6 @@ static inline void place_line() {
     drag_line();
     grabbed_line = false;
 }
-
 static inline void hover_rects() {
     if (rects.size())
         if (!grabbed_rect_handle) {
@@ -266,6 +267,7 @@ static inline void drag_rect_handle() {
 static inline void drag_camera() {
     if (cam_move) {
         set_cam_pos(mouse - temp_cam_pos);
+        glfwSetCursor(window, drag_cursor);
     }
 }
 static inline void grab_camera() {
@@ -279,13 +281,13 @@ static inline void place_camera() {
     glfwSetCursor(window, nullptr);
 }
 
-static void window_resize(GLFWwindow *window, int w, int h) {
+static void window_resize(GLFWwindow *, int w, int h) {
     window_width = w, window_height = h;
     glViewport(0, 0, w, h);
-    glUniform2f(glGetUniformLocation(s_shader, "window_size"), w, h);
+    glUniform2f(glGetUniformLocation(s_shader, "window_size"), static_cast<float>(w), static_cast<float>(h));
 }
-static void mouse_move(GLFWwindow *window, double x, double y) {
-    mouse.x = x, mouse.y = window_height - y;
+static void mouse_move(GLFWwindow *, double x, double y) {
+    mouse.x = static_cast<float>(x), mouse.y = window_height - static_cast<float>(y);
     grid_mouse = {10.f * int((mouse.x - cam_pos.x) / 10 + 0.5f) + cam_pos.x,
                   10.f * int((mouse.y - cam_pos.y) / 10 + 0.5f) + cam_pos.y};
 
@@ -308,7 +310,7 @@ static void mouse_move(GLFWwindow *window, double x, double y) {
 
     drag_camera();
 }
-static void mouse_press(GLFWwindow *window, int button, int action, int mods) {
+static void mouse_press(GLFWwindow *, int button, int action, int) {
     switch (action) {
     case GLFW_PRESS:
         switch (button) {
@@ -352,12 +354,12 @@ static void mouse_press(GLFWwindow *window, int button, int action, int mods) {
     default: break;
     }
 }
-static void key_press(GLFWwindow *window, int key, int scancode, int action, int mods) {
+static void key_press(GLFWwindow *glfw_window, int key, int, int action, int) {
     switch (key) {
     case GLFW_KEY_D:
         switch (action) {
         case GLFW_PRESS:
-            glfwSetCursor(window, select_cursor);
+            glfwSetCursor(glfw_window, select_cursor);
             tool_id = 2;
             break;
         default: break;
@@ -377,7 +379,14 @@ static void key_press(GLFWwindow *window, int key, int scancode, int action, int
 
 static inline void draw_viewport() {
     // Grid
-    draw_rect({menu_width, 0}, {window_width - menu_width, window_height}, 6);
+    draw_rect({
+        .pos = {menu_width, 0},
+        .size = {
+            static_cast<float>(window_width) - menu_width,
+            static_cast<float>(window_height),
+        },
+        .mid = 6,
+    });
 
     // Items (only segments at the moment)
     constexpr float handle_radius = 4, handle_width = 2 * handle_radius;
@@ -399,30 +408,51 @@ static inline void draw_viewport() {
     if (tool_id == 2)
         draw_circle(get_grid_mouse(), 5, selection_color1);
 }
-
 static inline void draw_menu_button(const std::string &string, const float height, const color &bcol, const color &tcol) {
-    const float len = string.length();
-    draw_rect(get_button_pos(len, height), get_button_size(len), 5, bcol);
+    const float len = static_cast<float>(string.length());
+    draw_rect({
+        .pos = get_button_pos(len, height),
+        .size = get_button_size(len),
+        .col = bcol,
+        .mid = 5,
+    });
     draw_text(menu_width / 2 - len * 4, window_height - height, string, tcol);
 }
-
 static inline void draw_menu() {
-    draw_rect({menu_width, 0}, {2, window_height}, 5.f, menu_border_color);
-    draw_rect({0, 0}, {menu_width, window_height}, 5.f, menu_color);
-    draw_rect({0, window_height - 32}, {menu_width, 2}, 5.f, menu_border_color);
+    draw_rect({
+        .pos = {menu_width, 0},
+        .size = {2, static_cast<float>(window_height)},
+        .col = menu_border_color,
+        .mid = 5.f,
+    });
+    draw_rect({
+        .pos = {0, 0},
+        .size = {menu_width, static_cast<float>(window_height)},
+        .col = menu_color,
+        .mid = 5.f,
+    });
+    draw_rect({
+        .pos = {0, static_cast<float>(window_height) - 32},
+        .size = {menu_width, 2},
+        .col = menu_border_color,
+        .mid = 5.f,
+    });
 
-    draw_text(menu_width / 2 - 2 * 8, window_height - 24, "Menu", text_color1);
+    draw_text(menu_width / 2 - 2 * 8, static_cast<float>(window_height) - 24, "Menu", text_color1);
 
     draw_menu_button("Line Tool", 80, button_color1, text_color1);
     draw_menu_button("Other Tool", 120, button_color1, text_color1);
     draw_menu_button("Other Tool", 160, button_color1, text_color1);
     draw_menu_button("Other Tool", 200, button_color1, text_color1);
 
-    std::string camera_pos_str = "Camera: " + std::to_string(cam_pos.x) + ", " + std::to_string(cam_pos.y);
-    draw_line({menu_width + 24, 17}, {menu_width + 16 + camera_pos_str.length() * 8, 17}, 10, drop_shadow_color1);
-    draw_text(menu_width + 20, 10, camera_pos_str, text_color1);
-}
+    std::string text = "Camera: " + std::to_string(cam_pos.x) + ", " + std::to_string(cam_pos.y);
+    draw_line({menu_width + 24, 17}, {menu_width + 16 + text.length() * 8, 17}, 10, drop_shadow_color1);
+    draw_text(menu_width + 20, 10, text, text_color1);
 
+    text = "Frame time (avg): " + std::to_string(avg_time) + ", (current): " + std::to_string(elapsed_time);
+    draw_line({menu_width + 24, 37}, {menu_width + 16 + text.length() * 8, 37}, 10, drop_shadow_color1);
+    draw_text(menu_width + 20, 30, text, text_color1);
+}
 static inline void draw_scene() {
     draw_viewport();
     draw_menu();
@@ -434,11 +464,11 @@ int main() {
     drag_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
     select_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     if (!window) {
-        Debug::Log::error("Failed to create window");
+        std::printf("Failed to create window");
         return -1;
     }
     glfwMakeContextCurrent(window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    glewInit();
 
     glfwSetCursorPosCallback(window, mouse_move);
     glfwSetMouseButtonCallback(window, mouse_press);
@@ -447,14 +477,39 @@ int main() {
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glfwSwapInterval(0);
+
+#if 0
+    snap_to_grid = false;
+    for (auto j = 0.0f; j < 100; ++j) {
+        for (auto i = 0.0f; i < 100; ++i) {
+            mouse = {20.0f * i, 10.0f * j};
+            set_line_point1();
+            mouse = {20.0f * i + 10, 10.0f * j};
+            set_line_point2();
+        }
+    }
+#endif
 
     begin();
 
+    int frame_num = 0;
+    double last_frame_time = 0;
+
     while (!glfwWindowShouldClose(window)) {
+        prev_time = current_time;
+        current_time = glfwGetTime();
+        elapsed_time = current_time - prev_time;
+
+        ++frame_num;
+        if (frame_num > 1000) {
+            avg_time = 1.0 / 100 * (current_time - last_frame_time);
+            last_frame_time = current_time;
+            frame_num = 0;
+        }
 
         draw_scene();
         flush();
-
         glfwPollEvents();
         glfwSwapBuffers(window);
     }

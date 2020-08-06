@@ -47,7 +47,7 @@ namespace Physics {
         Units units;
         Scalar operator*(const Vec2 &v) const { return {x * v.x + y * v.y, units * v.units}; }
         Scalar cross(const Vec2 &v) const { return {x * v.y + y * v.x, units * v.units}; }
-        Scalar len() const { return {sqrtf32(x * x + y * y), units}; }
+        Scalar len() const { return {std::sqrtf(x * x + y * y), units}; }
     };
 } // namespace Physics
 

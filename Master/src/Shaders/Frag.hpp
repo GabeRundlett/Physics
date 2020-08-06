@@ -14,9 +14,9 @@ uniform vec2 viewport_center = vec2(900, 450);
 out vec4 color;
 
 float line(in vec2 pos, in vec2 a, in vec2 b, in float radius) {
-    vec2 ab = b - a;
-    float t = clamp(dot(pos - a, ab) / dot(ab, ab), 0, 1);
-    return radius - length(pos - a - t * ab);
+	vec2 ab = a - b;
+	float t = clamp(dot(pos - b, ab) / dot(ab, ab), 0, 1);
+	return radius - length(pos - b - t * ab);
 }
 
 uniform sampler2D tex;
