@@ -1,5 +1,5 @@
+#pragma once
 #include "OpenGL.hpp"
-
 #include "Shaders/Vert.hpp"
 #include "Shaders/Frag.hpp"
 

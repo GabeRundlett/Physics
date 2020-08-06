@@ -1,8 +1,8 @@
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION
 #include "StbImage.hpp"
-#include <gl/glew.h>
-#include <gl/wglew.h>
+#include <GL/glew.h>
+#include <GL/wglew.h>
 #include <cstdio>
 
 static inline void compile_sources(int id, int shader_type, const char *const src) {
