@@ -1,4 +1,5 @@
 #pragma once
+#include "Interface.hpp"
 #include <vector>
 
 struct Line {
@@ -134,13 +135,23 @@ static inline void drag_line_handle() {
     if (grabbed_line_handle && hovered_line_handle)
         *hovered_line_handle = get_grid_mouse() - cam_pos;
 }
+static constexpr float to_grid(float val) {
+    constexpr float GRID_SIZE = 10;
+    return GRID_SIZE * static_cast<float>(static_cast<int>(val / GRID_SIZE));
+}
 static inline void drag_line() {
     if (grabbed_line && hovered_line) {
         hovered_line->a = mouse - grabbed_line_offset_a - cam_pos;
         hovered_line->b = mouse - grabbed_line_offset_b - cam_pos;
         if (snap_to_grid) {
-            hovered_line->a = {10.f * int(hovered_line->a.x / 10), 10.f * int(hovered_line->a.y / 10)};
-            hovered_line->b = {10.f * int(hovered_line->b.x / 10), 10.f * int(hovered_line->b.y / 10)};
+            hovered_line->a = {
+                to_grid(hovered_line->a.x),
+                to_grid(hovered_line->a.y),
+            };
+            hovered_line->b = {
+                to_grid(hovered_line->b.x),
+                to_grid(hovered_line->b.y),
+            };
         }
     }
 }

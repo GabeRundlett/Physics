@@ -1,19 +1,27 @@
 #pragma once
 #include "Renderer/Renderer.hpp"
-#include "UI/Interface.hpp"
+
+#include "UI/Line.hpp"
+#include "UI/Rect.hpp"
+#include "UI/Button.hpp"
+
 #define DARK_THEME true
 
 #if DARK_THEME
-static color menu_color = {25, 25, 28, 255}, menu_border_color = {20, 20, 22, 255},  //
-    text_color1 = {168, 168, 172, 255}, drop_shadow_color1 = {0, 0, 0, 175},         //
-    button_color1 = {22, 22, 24, 255}, button_color2 = {30, 30, 33, 255},            //
-    selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25}, //
+static color
+    menu_color = {25, 25, 28, 255},
+    menu_border_color = {20, 20, 22, 255},
+    text_color1 = {168, 168, 172, 255}, drop_shadow_color1 = {0, 0, 0, 175},
+    button_color1 = {22, 22, 24, 255},
+    selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25},
     line_color = {61, 61, 66, 255}, handle_color = {82, 82, 91, 255};
 #else
-static color menu_color = {255, 255, 255, 255}, menu_border_color = {200, 200, 200, 255}, //
-    text_color1 = {50, 50, 50, 255}, drop_shadow_color1 = {255, 255, 255, 75},            //
-    button_color1 = {210, 210, 210, 255}, button_color2 = {30, 30, 33, 255},              //
-    selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25},      //
+static color
+    menu_color = {255, 255, 255, 255},
+    menu_border_color = {200, 200, 200, 255},
+    text_color1 = {50, 50, 50, 255}, drop_shadow_color1 = {255, 255, 255, 75},
+    button_color1 = {210, 210, 210, 255},
+    selection_color1 = {100, 100, 200, 255}, selection_color2 = {200, 200, 255, 25},
     line_color = {180, 180, 180, 255}, handle_color = {150, 150, 150, 255};
 #endif
 
@@ -29,7 +37,7 @@ static inline void draw_viewport() {
     });
 
     // Items (only segments at the moment)
-    constexpr float handle_radius = 4, handle_width = 2 * handle_radius;
+    constexpr float handle_radius = 4;
     const float x_cam_off = cam_pos.x, y_cam_off = cam_pos.y;
     for (const Line &l : lines) // The lines
         draw_line({l.a.x + x_cam_off, l.a.y + y_cam_off}, {l.b.x + x_cam_off, l.b.y + y_cam_off}, handle_radius, line_color);
@@ -56,7 +64,7 @@ static inline void draw_menu_button(const std::string &string, const float heigh
         .col = bcol,
         .mid = 5,
     });
-    draw_text(menu_width / 2 - len * 4, window_height - height, string, tcol);
+    draw_text(menu_width / 2 - len * 4, static_cast<float>(window_height) - height, string, tcol);
 }
 static inline void draw_menu() {
     draw_rect({
@@ -86,14 +94,16 @@ static inline void draw_menu() {
     draw_menu_button("Other Tool", 200, button_color1, text_color1);
 
     std::string text = "Camera: " + std::to_string(cam_pos.x) + ", " + std::to_string(cam_pos.y);
-    draw_line({menu_width + 24, 17}, {menu_width + 16 + text.length() * 8, 17}, 10, drop_shadow_color1);
+    draw_line({menu_width + 24, 17}, {menu_width + 16 + static_cast<float>(text.length()) * 8, 17}, 10, drop_shadow_color1);
     draw_text(menu_width + 20, 10, text, text_color1);
 
     text = "Frame time (avg): " + std::to_string(avg_time) + ", (current): " + std::to_string(elapsed_time);
-    draw_line({menu_width + 24, 37}, {menu_width + 16 + text.length() * 8, 37}, 10, drop_shadow_color1);
+    draw_line({menu_width + 24, 37}, {menu_width + 16 + static_cast<float>(text.length()) * 8, 37}, 10, drop_shadow_color1);
     draw_text(menu_width + 20, 30, text, text_color1);
 }
 static inline void draw_scene() {
     draw_viewport();
     draw_menu();
 }
+
+#include "Tools.inl"

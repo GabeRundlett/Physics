@@ -4,6 +4,7 @@ target_link_libraries(Master
     # Physics
     CONAN_PKG::glew
     CONAN_PKG::glfw
+    CONAN_PKG::stb
     project_options
     project_warnings
 )

@@ -1,4 +1,5 @@
 #pragma once
+#include "Interface.hpp"
 #include <vector>
 
 struct Rect {

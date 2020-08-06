@@ -1,12 +1,11 @@
 #pragma once
 #define STB_IMAGE_IMPLEMENTATION
-#include "StbImage.hpp"
+#include <stb_image.h>
 #include <GL/glew.h>
-#include <GL/wglew.h>
 #include <cstdio>
 
-static inline void compile_sources(int id, int shader_type, const char *const src) {
-    unsigned int compiled_object_id = glCreateShader(shader_type);
+static inline void compile_sources(unsigned int id, int shader_type, const char *const src) {
+    unsigned int compiled_object_id = glCreateShader(static_cast<unsigned int>(shader_type));
     glShaderSource(compiled_object_id, 1, &src, NULL);
     glCompileShader(compiled_object_id);
 
@@ -15,7 +14,7 @@ static inline void compile_sources(int id, int shader_type, const char *const sr
     if (temp == GL_FALSE) {
         temp = 0;
         glGetShaderiv(compiled_object_id, GL_INFO_LOG_LENGTH, &temp);
-        std::vector<char> infoLog(temp);
+        std::vector<char> infoLog(static_cast<std::size_t>(temp));
         glGetShaderInfoLog(compiled_object_id, temp, &temp, &infoLog[0]);
         glDeleteShader(compiled_object_id);
         std::printf("%s\n", infoLog.data());
@@ -25,19 +24,19 @@ static inline void compile_sources(int id, int shader_type, const char *const sr
     glDeleteShader(compiled_object_id);
 }
 template <typename... T>
-static inline void compile_sources(int id, int shader_type, const char *const src, T... args) {
+static inline void compile_sources(unsigned int id, int shader_type, const char *const src, T... args) {
     compile_sources(id, shader_type, src);
     compile_sources(id, args...);
 }
 template <typename... T>
-static inline int create_shader(int shader_type, const char *const src, T... args) {
-    int id = glCreateProgram();
+static inline auto create_shader(int shader_type, const char *const src, T... args) {
+    auto id = glCreateProgram();
     compile_sources(id, shader_type, src, args...);
     glLinkProgram(id);
     glUseProgram(id);
     return id;
 }
-static inline int create_texture(const char *const filepath) {
+static inline unsigned int create_texture(const char *const filepath) {
     int w, h, c;
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filepath, &w, &h, &c, 0);

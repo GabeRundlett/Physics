@@ -19,13 +19,13 @@ struct Vertex {
     float mid, data1;
 };
 
-static constexpr unsigned int s_sprite_count = 10000, s_vbuffer_size = 4 * sizeof(Vertex) * s_sprite_count,
-                              s_ibuffer_size = 6 * s_sprite_count;
+static constexpr GLsizei s_sprite_count = 10000, s_vbuffer_size = 4 * sizeof(Vertex) * s_sprite_count,
+                         s_ibuffer_size = 6 * s_sprite_count;
 static unsigned int s_vao_id, s_vbo_id, s_ibo_id;
 static unsigned short s_indices[s_ibuffer_size];
-static unsigned int s_index_count = 0;
+static GLsizei s_index_count = 0;
 static Vertex *s_vbuffer_pointer;
-static int s_shader = 0, s_texture = 0;
+static unsigned int s_shader = 0, s_texture = 0;
 
 struct rect_config {
     vec2 pos, size;
@@ -59,20 +59,21 @@ static inline void begin() {
     glEnableVertexAttribArray(3);
     glEnableVertexAttribArray(4);
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)8);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)16);
-    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (const void *)24);
-    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)28);
-    glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void *)32);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(0));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(8));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(16));
+    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(24));
+    glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(28));
+    glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<const void *>(32));
     for (unsigned short i = 0; i < s_sprite_count; ++i) {
-        const unsigned short index = i * 6, offset = i * 4;
+        const auto index = static_cast<unsigned short>(i * 6),
+                   offset = static_cast<unsigned short>(i * 4);
         s_indices[index] = offset;
-        s_indices[index + 1] = 1 + offset;
-        s_indices[index + 2] = 2 + offset;
-        s_indices[index + 3] = 1 + offset;
-        s_indices[index + 4] = 3 + offset;
-        s_indices[index + 5] = 2 + offset;
+        s_indices[index + 1] = static_cast<unsigned short>(1 + offset);
+        s_indices[index + 2] = static_cast<unsigned short>(2 + offset);
+        s_indices[index + 3] = static_cast<unsigned short>(1 + offset);
+        s_indices[index + 4] = static_cast<unsigned short>(3 + offset);
+        s_indices[index + 5] = static_cast<unsigned short>(2 + offset);
     }
     glGenBuffers(1, &s_ibo_id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ibo_id);
@@ -173,7 +174,7 @@ static inline void draw_text(float x, float y, const std::string &text, const co
         const int index = static_cast<int>(text[i]) - 32;
         const float u = static_cast<float>(index) / 223;
         draw_rect({
-            .pos = {x + 8.f * i, y},
+            .pos = {x + 8.f * static_cast<float>(i), y},
             .size = {8.f, 16.f},
             .tex_pos = {u, 0.f},
             .tex_size = {1.f / 223, 1.f},
