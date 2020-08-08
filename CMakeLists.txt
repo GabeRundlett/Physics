@@ -13,5 +13,5 @@ conan_cmake_run(
     BUILD
 )
 
-# add_subdirectory(Physics)
+add_subdirectory(Physics)
 add_subdirectory(Master)

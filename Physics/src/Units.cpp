@@ -1,13 +1,13 @@
 #include "Physics.hpp"
 
 namespace Physics {
-    Units Unit::operator*(const Unit &u) { return {*this, u}; }
-    Units Unit::operator/(Unit &u) {
+    Units Unit::operator*(const Unit u) { return {*this, u}; }
+    Units Unit::operator/(Unit u) {
         u.pow *= -1;
         return {*this, u};
     }
 
-    Units Units::operator*(const Units &u) const {
+    Units Units::operator*(const Units u) const {
         Units result = {units};
         result.units.insert(result.units.end(), u.units.begin(), u.units.end());
         for (unsigned int i = 0; i < result.units.size(); ++i) {
